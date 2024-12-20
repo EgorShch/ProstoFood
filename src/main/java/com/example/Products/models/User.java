@@ -32,7 +32,6 @@ public class User implements UserDetails {
 
     String name;
 
-    @Column(unique = true)
     String email;
 
     @ElementCollection(targetClass = Role.class, fetch = FetchType.EAGER)
@@ -72,5 +71,16 @@ public class User implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "userId=" + userId +
+                ", login='" + login + '\'' +
+                ", password='" + password + '\'' +
+                ", name='" + name + '\'' +
+                ", email='" + email + '\'' +
+                '}';
     }
 }

@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -17,6 +18,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.thymeleaf.spring6.SpringTemplateEngine;
+//import org.thymeleaf.spring6.dialect.SpringSecurityDialect;
 
 @Configuration
 @EnableWebSecurity
@@ -32,13 +35,24 @@ public class SecurityConfig  {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login", "/registration", "/**").permitAll()
-                        //.requestMatchers("/**")
-                        //authenticated()
+                        .requestMatchers("/login", "/registration",
+                                "/products", "/products/**", "/api/images/**",
+                                "images/**", "/category/**", "/api/**")
+                        .permitAll() // Поля доступные всем пользователям
+                        .requestMatchers("/cart", "/profile", "/orders") // Защищенные страницы (требуют аутентификации)
+                        .authenticated()
+                        .requestMatchers("/**") // Все остальные запросы должны быть аутентифицированы
+                        .authenticated()
                 )
                 .formLogin(form -> form
-                        .loginPage("/login")
+                        .loginPage("/login") // Страница авторизации
                         .permitAll()
+                        .successHandler(((request, response, authentication) -> {
+                            // Перенаправляем аутентифицированного пользователя
+                            response.sendRedirect("/profile");
+
+                        }))
+
                 )
                 .logout(LogoutConfigurer::permitAll
                 )
@@ -63,6 +77,13 @@ public class SecurityConfig  {
     public UserDetailsService userDetailsService(){
         return customUserDetailsService;
     }
+
+    /*@Bean
+    public SpringTemplateEngine templateEngine() {
+        SpringTemplateEngine templateEngine = new SpringTemplateEngine();
+        templateEngine.addDialect(new SpringSecurityDialect()); // Add Spring Security Dialect
+        return templateEngine;
+    }*/
 
 
 

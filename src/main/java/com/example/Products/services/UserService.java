@@ -17,6 +17,7 @@ public class UserService {
     public boolean createUser(User user){
         if (userRepository.findByLogin(user.getLogin()) != null) return false;
         user.getRoles().add(Role.ROLE_USER);
+        user.getRoles().add(Role.ROLE_ADMIN);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(user);
         return true;

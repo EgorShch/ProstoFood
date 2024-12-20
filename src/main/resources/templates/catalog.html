@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html
+  lang="en"
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Online Store</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      .product-item {
+        cursor: pointer;
+        transition: background-color 0.2s ease-in-out;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .product-item:hover {
+        background-color: #f8f9fa;
+      }
+      .product-info {
+        display: flex;
+        flex-grow: 1;
+        align-items: center;
+      }
+      .product-image {
+        width: 140px;
+        height: 140px;
+        object-fit: cover;
+        margin-right: 10px;
+      }
+      .add-to-cart {
+        flex-shrink: 0;
+      }
+      .navbar-custom {
+        background-color: #28a745; /* Зеленоватый оттенок */
+      }
+      .navbar-custom .nav-link,
+      .navbar-custom .navbar-brand {
+        color: #ffffff;
+      }
+      .navbar-custom .nav-link:hover {
+        color: #d4edda;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-custom">
+      <div class="container-fluid">
+        <a class="navbar-brand p-0" href="/products">
+          <img
+            th:src="@{/images/ProstoFood.png}"
+            alt="ProstoFood"
+            height="50"
+          />
+        </a>
+
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <li class="nav-item">
+          <a class="nav-link" th:href="@{/category/{categoryName}(categoryName='Meat')}">Meat</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" th:href="@{/category/{categoryName}(categoryName='Мука')}">Мука</a>
+        </li>
+
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="/cart">Корзина</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/profile">Профиль</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container mt-5">
+      <h1 class="mb-4">Product Categories</h1>
+      <div id="product-container">
+        <!-- Thymeleaf template loop -->
+        <div th:each="entry : ${groupedProducts}" class="card mb-4">
+          <div class="card-header" th:text="${entry.key}"></div>
+          <div class="card-body">
+            <ul class="list-group">
+              <li
+                th:each="product : ${entry.value}"
+                class="list-group-item d-flex align-items-center product-item"
+              >
+                <div class="row w-100">
+                  <!-- Столбец для изображения -->
+                  <div class="col-2 d-flex justify-content-center">
+                    <img
+                      th:src="@{'/api/images/' + ${product.image.id}}"
+                      class="product-image img-thumbnail"
+                      alt="Product Image"
+                      style="width: 140px; height: 140px; object-fit: cover"
+                    />
+                  </div>
+
+                  <!-- Столбец для информации о продукте -->
+                  <div class="col-8">
+                    <div
+                      th:onclick="|window.location.href='/products/' + ${product.productId}|"
+                      style="cursor: pointer"
+                    >
+                      <h5 th:text="${product.name}" class="mb-1"></h5>
+                      <p class="mb-1">
+                        <strong>Brand:</strong>
+                        <span th:text="${product.brand}"></span>
+                      </p>
+                      <p class="mb-0">
+                        <strong>Price:</strong> <span
+                          th:text="${product.price}"
+                        > ₽</span>
+                      </p>
+                    </div>
+                  </div>
+
+                  <!-- Столбец для кнопки добавления в корзину -->
+                  <div
+                    class="col-2 d-flex justify-content-center align-items-center"
+                  >
+                    <button
+                      class="btn btn-primary add-to-cart"
+                      th:data-product-id="${product.productId}"
+                    >
+                      Добавить в корзину
+                    </button>
+                  </div>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      document.querySelectorAll(".add-to-cart").forEach((button) => {
+        button.addEventListener("click", function (event) {
+          const productId = this.getAttribute("data-product-id"); // Получаем правильный ID продукта
+
+          // Отправляем POST-запрос на сервер
+          fetch("/api/orders/add", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ productId: productId }), // Передаем ID продукта
+          })
+            .then((response) => {
+              if (response.status === 401) {
+                // Если статус 401 (неавторизован), выводим сообщение о том, что нужно войти
+                alert("You must be logged in to add products to the cart");
+                window.location.href = "/login"; // Перенаправляем на страницу логина
+              } else if (response.ok) {
+                // Если статус 200 (ОК), показываем сообщение о том, что товар добавлен в корзину
+                //alert("Товар добавлен в корзину!!");
+              } else {
+                // Для всех других статусов, выводим общее сообщение об ошибке
+                alert("Ошибка добавления товара в корзину.");
+              }
+            })
+            .catch((error) => {
+              console.error("Ошибка:", error);
+              alert("Ошибка при добавлении товара в корзину.");
+            });
+
+          // Предотвращаем стандартное действие кнопки
+          event.preventDefault();
+        });
+      });
+    </script>
+  </body>
+</html>

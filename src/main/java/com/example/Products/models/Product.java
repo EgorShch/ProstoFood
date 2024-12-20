@@ -23,5 +23,14 @@ public class Product {
 
     String description;
 
-    Category category;
+    String category;
+
+    String brand;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "image_id")
+    Image image;
+
+    @Transient
+    int quantity;
 }

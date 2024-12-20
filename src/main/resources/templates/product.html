@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Product Details</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    />
+    <style>
+      .fixed-height-img {
+        height: 200px; /* Установите желаемую высоту */
+        object-fit: cover; /* Изображение масштабируется и обрезается, чтобы заполнить контейнер */
+      }
+      .navbar-custom {
+        background-color: #28a745; /* Зеленоватый оттенок */
+      }
+      .navbar-custom .nav-link,
+      .navbar-custom .navbar-brand {
+        color: #ffffff;
+      }
+      .navbar-custom .nav-link:hover {
+        color: #d4edda;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-custom">
+      <div class="container-fluid">
+        <a class="navbar-brand p-0" href="/products">
+          <img
+            th:src="@{/images/ProstoFood.png}"
+            alt="ProstoFood"
+            height="50"
+          />
+        </a>
+
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="/cart">Корзина</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/profile">Профиль</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    <div class="container mt-5">
+      <!-- Заголовок -->
+      <div class="text-center mb-4">
+        <h1 th:text="${product.name}">Product Name</h1>
+      </div>
+
+      <!-- Карточка продукта -->
+      <div class="card mb-4">
+        <div class="row g-0">
+          <!-- Изображение продукта -->
+          <div class="col-md-4">
+            <img
+              th:src="@{'/api/images/' + ${product.image.id}}"
+              class="img-fluid rounded-start"
+              alt="Product Image"
+            />
+          </div>
+
+          <!-- Детали продукта -->
+          <div class="col-md-8">
+            <div class="card-body">
+              <!-- Название -->
+              <h5 class="card-title" th:text="${product.name}">Product Name</h5>
+
+              <!-- Описание -->
+              <p class="card-text" th:text="${product.description}">
+                Product description here...
+              </p>
+
+              <!-- Цена -->
+              <p class="card-text">
+                <strong>Price:</strong> <span th:text="${product.price}"
+                  >0</span
+                >₽
+              </p>
+
+              <!-- Категория -->
+              <p class="card-text">
+                <strong>Category:</strong>
+                <span th:text="${product.category}">Category Name</span>
+              </p>
+
+              <!-- Бренд -->
+              <p class="card-text">
+                <strong>Brand:</strong>
+                <span th:text="${product.brand}">Brand Name</span>
+              </p>
+
+              <!-- Кнопки -->
+              <div class="mt-4">
+                <!-- Кнопка назад -->
+                <a href="/products" class="btn btn-secondary"
+                  >Вернуться</a
+                >
+                <!-- Кнопка добавить в корзину -->
+                <button
+                  class="btn btn-primary"
+                  th:onclick="'addToCart(' + ${product.productId} + ')'"
+                >
+                  Добавить в корзину
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Другие продукты из той же категории -->
+      <div class="mt-5">
+        <h2>
+          Похожие продукты в <span th:text="${product.category}">Category</span>
+        </h2>
+        <div class="row row-cols-1 row-cols-md-4 g-4">
+          <div class="col" th:each="relatedProduct : ${relatedProducts}">
+            <div class="card h-100">
+              <!-- Изображение -->
+              <img
+                th:src="@{'/api/images/' + ${relatedProduct.image.id}}"
+                class="card-img-top fixed-height-img"
+                alt="Related Product Image"
+              />
+              <div class="card-body">
+                <!-- Название -->
+                <h5 class="card-title" th:text="${relatedProduct.name}">
+                  Related Product Name
+                </h5>
+                <!-- Цена -->
+                <p class="card-text">
+                  <span th:text="${relatedProduct.price}">0</span>₽
+                </p>
+                <!-- Кнопка посмотреть -->
+                <a
+                  th:href="@{'/products/' + ${relatedProduct.productId}}"
+                  class="btn btn-outline-primary"
+                  >View</a
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      function addToCart(productId) {
+        fetch(`/cart/add/${productId}`, {
+          method: "POST",
+        }).then((response) => {
+          if (response.ok) {
+            alert("Product added to cart successfully!");
+          } else {
+            alert("Failed to add product to cart.");
+          }
+        });
+      }
+    </script>
+  </body>
+</html>
